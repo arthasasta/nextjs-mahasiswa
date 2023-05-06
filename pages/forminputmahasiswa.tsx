@@ -59,12 +59,12 @@ export default function FormMahasiswa() {
       <table border={0}>
         <tbody>
         <tr>
-        <td> <label> Nim:</label></td>
+        <td> <label> nim:</label></td>
         <td><input type="text" id="nim"  value={nim}
           onChange={(e) => setNim(e.target.value)}  /></td>
     </tr>
     <tr>
-        <td>  <label> Nama:</label></td>
+        <td>  <label> nama:</label></td>
         <td><input type="text" id="nama"  value={nama}
           onChange={(e) => setNama(e.target.value)} /></td>
     </tr>
@@ -140,23 +140,56 @@ export default function FormMahasiswa() {
       </form>
       <table border={1}>
         <thead>
-            <tr><td>Nim</td>
-            <td>Nama</td></tr>
+            {/* <tr><td>Nim</td>
+            <td>Nama</td></tr> */}
         </thead>
         <tbody>
             <tr>
-                <td>{nim}</td>
-                <td>{nama}</td>
+                {/* <td>{nim}</td>
+                <td>{nama}</td> */}
             </tr>
         </tbody>
       </table>
       
       <div>
       {/* <h1>{post.title}</h1>
-      <p>{post.body}</p> */}
-      <button onClick={deletePost}>Delete Post</button>
+      <p>{post.body}</p>
+      <button onClick={deletePost}>Delete Post</button> */}
       </div>
 
       <br/>
       <br/>
       <br/>
+    Tabel Mahasiswa hasil get Local Nodejs
+    <table border={1}>
+        <thead>
+            <tr><td>Nim</td>
+            <td>Nama</td></tr>
+        </thead>
+    
+            {/* <tr>
+                <td>{mahasiswa[0].nim}</td>
+                <td>{mahasiswa[0].nama}</td>
+            </tr>
+            {/* <tr>
+                <td>{mahasiswa[1].nim}</td>
+                <td>{mahasiswa[1].nama}</td>
+            </tr> */} 
+
+        <tbody>
+        {/* {mahasiswa.map((mhs) => */}
+            <tr>
+                {/* <td>{mhs.nim}</td> */}
+                {/* <td>{mhs.nama}</td> */}
+            </tr>
+        )}
+
+     </tbody>
+      </table>
+
+      </div>
+      </center>
+    )
+  }
+   
+
