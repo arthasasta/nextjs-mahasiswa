@@ -1,195 +1,309 @@
-import axios from 'axios';
 import { useState,useEffect } from "react";
+import axios from "axios";
+import { stat } from "fs";
 
-const client = axios.create({
-  baseURL: "https://jsonplaceholder.typicode.com/posts"
+import Link from 'next/link'
+ const koneksiMahasiswa = axios.create({
+  
+  baseURL: "http://127.0.0.1:5000/api/mahasiswa" 
 });
 
-const koneksiMahasiswa = axios.create({
-  // baseURL: "http://192.168.1.33:5000/api/mahasiswa"
-   baseURL: "http://127.0.0.1:5000/api/mahasiswa"
- }); 
-
 export default function FormMahasiswa() {
-    const [nama, setNama] = useState("");
-    const [nim, setNim] = useState("");
-    const [post, setPost] = useState(null);
+    const [statenama, setNama] = useState("");
+    const [statenim, setNim] = useState("");
+    const [statetanggal, setTanggal] = useState("2018-07-22");
+    const [statealamat, setAlamat] = useState("");
+    const [statefoto, setFoto] = useState("");
     const [mahasiswa, setMahasiswa] =  useState(null);
+    const [stateadd,setAdd]=useState("hide");
+    const [statebutonadd,setbtnAdd]=useState("show");
+     
+    const [stateedit,setEdit]=useState("hide");
 
-    useEffect(() => {
+     
+    
+    function formatDate(date) {
+      var d = new Date(date),
+          month = '' + (d.getMonth() + 1),
+          day = '' + d.getDate(),
+          year = d.getFullYear();
+  
+      if (month.length < 2) 
+          month = '0' + month;
+      if (day.length < 2) 
+          day = '0' + day;
+  
+      return [year, month, day].join('-');
+  }
+   
+  const handleSubmitAdd =  (event) => {
+    
+    event.preventDefault();
+    alert('lewat');
+    const formData = new FormData(event.target);
+    koneksiMahasiswa
+      .post("/", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+      .then((res) => {
+        console.log(res);
+      window.location.reload();
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+     
+ }
+ const handleSubmitEdit =  (event) => {
+    
+  event.preventDefault();
+  const address = "/"+event.target.nim.value;
+  alert(address);
+  //const formData = new FormData(event.target);
+  const formData = {
+    nim: event.target.nim.value,
+    nama: event.target.nama.value,
+    alamat: event.target.alamat.value,
+    tanggal_lahir: event.target.tanggal_lahir.value
+}
+  alert(formData);
+  koneksiMahasiswa
+    .put( address,formData)
+    .then((res) => {
+      console.log(res);
+      window.location.reload();
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+   
+}
+  const handleAdd = (event) => {
+    
+     setAdd("show boxInput");
+     setbtnAdd("hide");
+     setEdit("hide");
+ 
+      
+  }
+  const handleCancelAdd = (event) => {
+    
+     setAdd("hide");
+     setbtnAdd("show");
+     setEdit("hide");
+ 
+      
+  }
+  const handleCancelEdit = (event) => {
+    
+    setAdd("hide");
+    setbtnAdd("show");
+    setEdit("hide");
+    setNama("");
+    setNim("");
+    setAlamat("");
+    setTanggal(formatDate("2018-07-22"));
+    setFoto("");
+     
+ }
+   const handleDelete = (event) => {
+            event.preventDefault();
+            var nim = event.target.value;
+            koneksiMahasiswa.delete(`/${nim}`)
+              .then(response => {
+                console.log('Data berhasil dihapus:', response.data);
+                setMahasiswa(
+                  mahasiswa.filter((mahasiswa) => {
+                     return mahasiswa.nim !== nim;
+                  }))
+             
+                // Lakukan langkah-langkah lain setelah penghapusan data
+              })
+              .catch(error => {
+                console.error('Gagal menghapus data:', error);
+              })
+          }
+
+      const handleEdit = (event) => {
+            event.preventDefault();
+            var nim = event.target.value;
+            
+               const mhsEdit =  mahasiswa.filter((mahasiswa) => {
+                     return mahasiswa.nim == nim;
+                  });
+                  if(mhsEdit!=null){
+
+                    setNama(mhsEdit[0].nama);
+                    setNim(mhsEdit[0].nim);
+                    setAlamat(mhsEdit[0].alamat);
+                    setTanggal(formatDate(mhsEdit[0].tanggal_lahir));
+                    setFoto(mhsEdit[0].foto);
+                    setAdd("hide");
+                    setbtnAdd("show");
+                    setEdit("show box");
+
+                  }
+          }
+  useEffect(() => {
       async function getMahasiswa() {
         const response = await koneksiMahasiswa.get("/").then(function (axiosResponse) {
-            setMahasiswa(axiosResponse.data.data);
+            setMahasiswa(axiosResponse.data.data); 
+     
          })
-         .catch(function (error) {
-         
+         .catch(function (error) {   
           alert('error from mahasiswa in api mahasiswa: '+error);
          });;
           }
       getMahasiswa();
     }, []);
-
+  
    
-    useEffect(() => {
-      async function getPost() {
-        const response = await client.get("/1");
-        setPost(response.data);
-      }
-      getPost();
-    }, []);
-   
-  if (!post) return "No post!"
-  async function deletePost() {
-    await client.delete("/1");
-    alert("Post deleted!");
-    setPost(null);
-  }
+if(mahasiswa==null){
+return(
+  <div>
+    waiting...
+  </div>
+)
+}else{
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    alert(`Nama: ${nama} \n Nim: ${nim}`)
-  }
-
-    return (
-
-<center><br></br><h1>Form Input Mahasiswa</h1><br></br>
-<div>
-  <form onSubmit={handleSubmit}>
-
-      <table border={0}>
-        <tbody>
-        <tr>
-        <td> <label> nim:</label></td>
-        <td><input type="text" id="nim"  value={nim}
-          onChange={(e) => setNim(e.target.value)}  /></td>
-    </tr>
-    <tr>
-        <td>  <label> nama:</label></td>
-        <td><input type="text" id="nama"  value={nama}
-          onChange={(e) => setNama(e.target.value)} /></td>
-    </tr>
-       
-    <tr>
-        <td>  <label> Tanggal Lahir:</label></td>
-        <td>   <input
-                type="date" value="2018-07-22" min="1945-01-01" max="2024-12-31
-                "/></td>
-    </tr>
-
-    <tr>
-        <td>  <label> Agama:</label></td>
-        <td>   <select>
-            <option value="Pilih Agama">Pilih Agama</option>
-            <option value="Islam">Islam</option>
-            <option value="Kristen Protestan">Kristen Protestan</option>
-            <option value="Katolik">Katolik</option>
-            <option value="Hindu">Hindu</option>
-            <option value="Buddha">Buddha</option>
-            <option value="Konghucu">Konghucu</option>
-        </select></td>
-    </tr>
-
-    <tr>
-        <td>  <label> Alamat:</label></td>
-        <td><textarea  id="address" style={{resize: "none"}} /></td>
-    </tr>
-    
-    <tr>
-        <td>  <label> Jurusan:</label></td>
-        <td>   <select>
-            <option value="Pilih Jurusan">Pilih Jurusan</option>
-            <option value="Sistem Informasi">Sistem Informasi</option>
-            <option value="Teknik Informatika">Teknik Informatika</option>
-            <option value="Manajemen Informatika">Manajemen Informatika</option>
-            <option value="Akuntansi">Akuntansi</option>
-            <option value="Manajemen">Manajemen</option>
-        </select></td>
-    </tr>
-
-    <tr>
-        <td>  <label> Hobby:</label></td>
-        <td>   <select>
-            <option value="Pilih Hobby">Pilih Hobby</option>
-            <option value="Musik">Musik</option>
-            <option value="Olahraga">Olahraga</option>
-            <option value="Membaca">Membaca</option>
-            <option value="Main Game">Main Game</option>
-            <option value="Nonton Film">Nonton Film</option>
-        </select></td>
-    </tr>
-    <tr>
-        <td>  <label> Jenis Kelamin:</label></td>
-        <td>   <input
-                type="radio" value="Pria" name="Jenis Kelamin"/> Pria
-            <input
-            
-                type="radio" value="Wanita"  name="Jenis Kelamin"/> Wanita</td>
-    </tr>
-    
-
-    <tr>
-        <td>  <label> Foto:</label></td>
-        <td>   <input
-                type="file" name="foto"/>  </td>
-    </tr>
-        </tbody>
-      </table>
-
-      <br></br><input type="submit" /><br></br><br></br>
-     
-      </form>
-      <table border={1}>
-        <thead>
-            {/* <tr><td>Nim</td>
-            <td>Nama</td></tr> */}
-        </thead>
-        <tbody>
-            <tr>
-                {/* <td>{nim}</td>
-                <td>{nama}</td> */}
-            </tr>
-        </tbody>
-      </table>
+  return (
+    <div>
       
-      <div>
-      {/* <h1>{post.title}</h1>
-      <p>{post.body}</p>
-      <button onClick={deletePost}>Delete Post</button> */}
-      </div>
-
-      <br/>
-      <br/>
-      <br/>
-    Tabel Mahasiswa hasil get Local Nodejs
+     <button id="btnadd" onClick={handleAdd} className={statebutonadd}>add</button>
+    
+       <form id="formadd" className={stateadd} onSubmit={handleSubmitAdd} >
+        <table border={0}>
+            <tbody>
+            <tr>
+            <td> <label> nim:</label></td>
+            <td><input type="text" id="nim" name="nim"  className="text"/>
+              
+              </td>
+        </tr>
+        <tr>
+            <td>  <label> nama:</label></td>
+            <td><input type="text" id="nama"   name="nama" className="text"
+               /></td>
+        </tr>
+        <tr>
+            <td>  <label> Foto:</label></td>
+            <td>   <input
+                    type="file" name="image"/>  </td>
+        </tr>
+        <tr>
+            <td>  <label> Tanggal Lahir:</label></td>
+            <td>  <input type="date" name="tanggal_lahir"  className="text"
+           min="1970-01-01" max="2025-12-31"/>
+     </td>
+        </tr>
+        <tr>
+            <td>  <label> alamat:</label></td>
+            <td><textarea  id="address" style={{resize: "none"}}  name="alamat"  className="text" ></textarea></td>
+        </tr>
+            </tbody>
+          </table>
+          <input type="submit" className="btn btn-blue"  />
+          <input type="button" value="cancel" onClick={handleCancelAdd} className="btn btn-blue" />
+          </form>  
+      <form id="formedit" className={stateedit} onSubmit={handleSubmitEdit}>
+ 
+          <table border={0}>
+            <tbody>
+            <tr>
+            <td> <label> nim:</label></td>
+            <td><input type="text" id="nim"  value={statenim} name="nim"/>
+              {/* onChange={handleOnchangeNim}  /> */}
+              </td>
+        </tr>
+        <tr>
+            <td>  <label> nama:</label></td>
+            <td><input type="text" id="nama"  value={statenama} name="nama"
+               onChange={(e) => setNama(e.target.value)}
+               /></td>
+        </tr>
+        <tr>
+            <td>  <label> Foto:</label></td>
+            <td>  <img src={statefoto} width="80"/> </td>
+        </tr>
+        <tr>
+            <td>  <label> Tanggal Lahir:</label></td>
+            <td>  <input type="date" value={statetanggal} name="tanggal_lahir"  onChange={(e) => setTanggal(e.target.value)}
+           min="1970-01-01" max="2025-12-31"/>
+     </td>
+        </tr>
+        <tr>
+            <td>  <label> alamat:</label></td>
+            <td><textarea  id="address" style={{resize: "none"}} value={statealamat} name="alamat"  onChange={(e) => setAlamat(e.target.value)}></textarea></td>
+        </tr>
+            </tbody>
+          </table>
+          <input type="submit" className="btn btn-blue"  />
+          <input type="button" value="cancel" onClick={handleCancelEdit} className="btn btn-blue"  />
+          </form>  
+        <br/>
+        <br/>
+        Tabel Mahasiswa hasil get Local Nodejs
+    
     <table border={1}>
         <thead>
-            <tr><td>Nim</td>
-            <td>Nama</td></tr>
-        </thead>
-    
-            {/* <tr>
-                <td>{mahasiswa[0].nim}</td>
-                <td>{mahasiswa[0].nama}</td>
-            </tr>
-            {/* <tr>
-                <td>{mahasiswa[1].nim}</td>
-                <td>{mahasiswa[1].nama}</td>
-            </tr> */} 
-
-        <tbody>
-        {/* {mahasiswa.map((mhs) => */}
             <tr>
-                {/* <td>{mhs.nim}</td> */}
-                {/* <td>{mhs.nama}</td> */}
+              <td><b>Nim</b></td> 
+            <td><b>Nama</b></td>
+            <td><b>Foto</b></td>
+            <td><b>Tanggal Lahir</b></td>
+            <td><b>Alamat</b></td>
+            <td colSpan={2}><b>Action</b></td>
             </tr>
-        )}
-
-     </tbody>
+        </thead>
+        <tbody>
+        {mahasiswa.map((mhs) => 
+            <tr>
+                <td>{mhs.nim}</td>
+                <td>{mhs.nama}</td>
+                <td><img src={mhs.foto} width="80"/></td>
+                <td>{mhs.tanggal_lahir}</td>
+                <td>{mhs.alamat}</td>
+               <td><button onClick={handleEdit} value={mhs.nim}>edit</button></td>
+               <td><button onClick={handleDelete} value={mhs.nim}>delete</button></td>
+            </tr>
+       )}     
+               </tbody>
       </table>
+     
+       <h1 className="purples">Menggunakan CSS Native</h1>
+       <hr/>
+        <div className="container">
+          
+          {mahasiswa.map((mhs) => 
+           
+           <div className="card">
+             <h2>{mhs.nim} - {mhs.nama}</h2>
+             <div class="title title--epic">{mhs.alamat}</div>
+             <div class="desc">{formatDate(mhs.tanggal_lahir)}</div>
+            
+             <img src={mhs.foto} width="80"/>
+             
+               <div class="actions">
+               <button class="actions__like"  onClick={handleEdit} value={mhs.nim}>Edit &nbsp; <i class="fas fa-heart"></i> </button>
+               <button class="actions__trade"  onClick={handleDelete} value={mhs.nim}>Delete &nbsp; <i class="fas fa-exchange-alt"></i> </button>
+             
+             </div>
+           
+          
+           </div>
 
-      </div>
-      </center>
-    )
+            
+                )}     
+          
+          </div>
+
+
+)}
+   </div>
+        )
+}
+  
   }
    
-
