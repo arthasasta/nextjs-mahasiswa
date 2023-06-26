@@ -271,7 +271,8 @@ return(
        )}     
                </tbody>
       </table>
-     
+      <br/>
+        <br/>
        <h1 className="purples">Menggunakan CSS Native</h1>
        <hr/>
         <div className="container">
